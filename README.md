@@ -1,6 +1,12 @@
-# Apple Platform Development Assistant Plugin
+# Apple Platform Development Best Practices & AI Rules
 
-An AI-first assistant plugin for Google Antigravity, specifically designed to help developers with Apple platform development (iOS, macOS, watchOS, tvOS, visionOS). It bundles built-in skills extracted from Xcode 27 and a unified ruleset covering modern SwiftUI patterns, UIKit modernization, Swift Testing, and Xcode security configurations.
+A comprehensive knowledge base and assistant configuration for Apple platform development (covering iOS, macOS, watchOS, tvOS, and visionOS). 
+
+This repository compiles Xcode 27 developer skills, modern Swift/SwiftUI practices, UIKit modernization steps, Swift Testing migration guides, and Xcode security configurations.
+
+It is designed to be **fully tool-agnostic**:
+- **For Developers**: Serves as an authoritative, offline-friendly handbook and cheat sheet for modern Apple development paradigms.
+- **For AI Coding Assistants (Cursor, Copilot, Windsurf, Antigravity, etc.)**: The consolidated rules and skills can be copied directly into system prompts, project rules (e.g., `.cursorrules`, `.windsurfrules`), or integrated as AI agent plugins.
 
 ---
 
@@ -9,10 +15,10 @@ An AI-first assistant plugin for Google Antigravity, specifically designed to he
 ```
 apple/
 ├── README.md           # This documentation
-├── plugin.json         # Plugin metadata (offline-friendly)
+├── plugin.json         # Plugin manifest (for Antigravity and compatible agents)
 ├── rules/
-│   └── apple.md        # Unified best practices and compile-time guardrails
-└── skills/             # Xcode 27 built-in skills
+│   └── apple.md        # Unified ruleset (ideal for .cursorrules or system prompts)
+└── skills/             # Target-specific development skills & references
     ├── adopt-c-bounds-safety
     ├── audit-xcode-security-settings
     ├── device-interaction
@@ -24,18 +30,18 @@ apple/
 
 ---
 
-## Features & Bundled Components
+## Features & Components
 
 ### 1. Unified Rules (`rules/apple.md`)
-A consolidated, offline-friendly guardrail file loaded automatically by Antigravity to keep code generation aligned with the latest Apple APIs. Key coverages:
+A consolidated, structured reference sheet containing strict coding boundaries and guidelines. This file is ideal to be used as a custom rule file (e.g., `.cursorrules` or `.github/copilot-instructions.md`) to guide AI-generated code.
 - **SwiftUI Best Practices**: Optimizing view hierarchies, avoiding `@Entry` closure invalidation warnings, and standardizing data flow using the `@Observable` macro.
 - **SwiftUI 2027 Compile Defense**: Crucial fixes for `@State` Macro compilation issues introduced in Xcode 27/iOS 27.
 - **UIKit Modernization**: Guide to removing deprecated global interfaces like `UIScreen.main` or `interfaceOrientation` to support multi-window environments.
 - **Swift Testing Modernization**: Best practices for migrating unit tests from `XCTest` to the modern `Testing` framework.
 - **Xcode Security Settings**: Build setting configurations for Enhanced Security (`ENABLE_ENHANCED_SECURITY=YES`), compiler warning flags, and `arm64e` pointer authentication overrides.
 
-### 2. Specialized Skills (`skills/`)
-Contains 7 targeted skills with accompanying documentation references to assist with complex tasks:
+### 2. Specialized Reference Skills (`skills/`)
+Contains 7 targeted skills with accompanying documentation references to assist with complex migration tasks:
 - **`adopt-c-bounds-safety`**: Adopting C language pointer bounds annotations (`-fbounds-safety`).
 - **`audit-xcode-security-settings`**: Progressively securing Xcode target build configurations.
 - **`device-interaction`**: Automating simulator or hardware UI tests through precision touch-event synthesis.
@@ -46,18 +52,22 @@ Contains 7 targeted skills with accompanying documentation references to assist 
 
 ---
 
-## Installation & Setup
+## How to Use
 
-1. Clone or copy this repository into your global Antigravity plugins directory:
-   ```bash
-   # Create parent folder if not exists
-   mkdir -p ~/.gemini/config/plugins
-   
-   # Clone the plugin
-   git clone https://github.com/jihongboo/apple-developer-plugin.git ~/.gemini/config/plugins/apple
-   ```
+### Integrating with AI Assistants
 
-2. Restart your Antigravity agent. The plugin, its skills, and its unified ruleset will be automatically discovered and loaded for your workspace tasks.
+#### 1. In Antigravity
+Clone or copy this repository into your global Antigravity plugins directory:
+```bash
+mkdir -p ~/.gemini/config/plugins
+git clone https://github.com/jihongboo/apple-developer-plugin.git ~/.gemini/config/plugins/apple
+```
+
+#### 2. In Cursor or Windsurf
+Copy the contents of `rules/apple.md` into a `.cursorrules` or `.windsurfrules` file at the root of your project workspace. This instructs the AI assistant to adhere to modern SwiftUI APIs, avoid deprecated UIKit elements, and apply correct Swift Testing assertions.
+
+#### 3. In GitHub Copilot / Custom System Prompts
+Append the rules in `rules/apple.md` to your prompt guidelines or your repository-level Copilot instructions file (e.g., `.github/copilot-instructions.md`).
 
 ---
 
