@@ -1,4 +1,31 @@
 {
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "apple",
-  "description": "Apple platform development assistant plugin, integrating Xcode 27 built-in skills and best practice rules."
+  "version": "0.1.0",
+  "description": "Skills and reference guides for Swift, SwiftUI, UIKit, Swift Testing, and Xcode security settings on Apple platforms.",
+  "author": {
+    "name": "Hongbo Ji",
+    "url": "https://github.com/jihongboo"
+  },
+  "homepage": "https://github.com/jihongboo/apple-developer-plugin",
+  "repository": "https://github.com/jihongboo/apple-developer-plugin",
+  "keywords": ["apple", "ios", "macos", "swift", "swiftui", "uikit", "xcode"],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Apple Developer",
+        "shortDescription": "Swift, SwiftUI, UIKit, and Xcode development guidance",
+        "longDescription": "Review SwiftUI code, modernize UIKit apps and XCTest suites, and assess Xcode security settings with focused skills and reference guides. Device verification workflows require compatible Xcode tools.",
+        "developerName": "Hongbo Ji",
+        "category": "Productivity",
+        "capabilities": ["Read", "Write"],
+        "websiteURL": "https://github.com/jihongboo/apple-developer-plugin",
+        "defaultPrompt": [
+          "Review my SwiftUI code for best practices and performance issues.",
+          "Help me migrate eligible XCTest unit tests to Swift Testing.",
+          "Audit my project's Xcode security build settings."
+        ]
+      }
+    }
+  }
 }
