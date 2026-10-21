@@ -15,7 +15,9 @@ It is designed to be **fully tool-agnostic**:
 ```
 apple/
 ├── README.md           # This documentation
-├── plugin.json         # Plugin manifest (for Antigravity and compatible agents)
+├── plugin.json         # Portable Agent Plugins manifest with Codex metadata
+├── .agents/plugins/
+│   └── marketplace.json # Codex marketplace catalog
 ├── rules/
 │   └── apple.md        # Unified ruleset (ideal for .cursorrules or system prompts)
 └── skills/             # Target-specific development skills & references
@@ -56,17 +58,47 @@ Contains 7 targeted skills with accompanying documentation references to assist 
 
 ### Integrating with AI Assistants
 
-#### 1. In Antigravity
+#### 1. In Codex
+
+Use a Codex CLI version that supports `codex plugin marketplace add` and `codex plugin add`. Install the plugin from this repository:
+
+```bash
+codex plugin marketplace add jihongboo/apple-developer-plugin &&
+codex plugin add apple@apple-developer
+```
+
+The marketplace is named `apple-developer`; the plugin is named `apple`. This skills-only package does not require an external service login. Building or testing Apple apps requires macOS and a compatible Xcode installation. Device interaction and some security audit steps additionally require the Xcode tools named in those skills; installing this plugin does not provide those tools.
+
+Start a new chat after installation. In the desktop app, restart the app if the marketplace or skills do not appear. Try: "Use the modernize-tests skill to review which XCTest unit tests can migrate to Swift Testing."
+
+To verify the installation:
+
+```bash
+codex plugin list --marketplace apple-developer
+```
+
+For local development, run these commands from the cloned repository root instead of adding the GitHub source:
+
+```bash
+codex plugin marketplace add . &&
+codex plugin add apple@apple-developer
+```
+
+Codex installs a cached copy of the plugin. After local edits, refresh that installed copy before testing. The standalone `rules/apple.md` file is a reference for manual integration; plugin installation does not automatically apply it as global instructions.
+
+See the [official Codex plugin packaging and marketplace documentation](https://developers.openai.com/plugins/build/plugins) for distribution details.
+
+#### 2. In Antigravity
 Clone or copy this repository into your global Antigravity plugins directory:
 ```bash
 mkdir -p ~/.gemini/config/plugins
 git clone https://github.com/jihongboo/apple-developer-plugin.git ~/.gemini/config/plugins/apple
 ```
 
-#### 2. In Cursor or Windsurf
+#### 3. In Cursor or Windsurf
 Copy the contents of `rules/apple.md` into a `.cursorrules` or `.windsurfrules` file at the root of your project workspace. This instructs the AI assistant to adhere to modern SwiftUI APIs, avoid deprecated UIKit elements, and apply correct Swift Testing assertions.
 
-#### 3. In GitHub Copilot / Custom System Prompts
+#### 4. In GitHub Copilot / Custom System Prompts
 Append the rules in `rules/apple.md` to your prompt guidelines or your repository-level Copilot instructions file (e.g., `.github/copilot-instructions.md`).
 
 ---
