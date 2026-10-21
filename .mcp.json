@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "xcode-tools": {
+      "type": "stdio",
+      "command": "/bin/sh",
+      "args": ["./scripts/xcode_mcp.sh"],
+      "cwd": ".",
+      "env_vars": ["XCODE_APP", "DEVELOPER_DIR", "MCP_XCODE_PID", "MCP_XCODE_SESSION_ID"]
+    }
+  }
+}

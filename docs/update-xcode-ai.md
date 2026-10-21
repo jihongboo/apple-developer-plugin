@@ -36,7 +36,9 @@ python3 scripts/sync_xcode_ai.py --xcode /Applications/Xcode.app --apply --adopt
 | --- | --- | --- | --- |
 | Skills | `xcrun agent plugin path --plugin-format codex` | `skills/` | 由插件加载，保持 Apple 原文 |
 | Prompt | Xcode 的 `IDEIntelligenceChat.framework/Versions/A/Resources` | `xcode-ai/prompts/` | 原始模板和配套资料，供审阅及适配引用 |
-| MCP | 当前 Xcode 的 `mcpbridge` | 根目录 `mcp.json`、`scripts/xcode_mcp.sh`；版本资料在 `xcode-ai/mcp/` | 启动时连接用户本机 Xcode，不复制二进制 |
+| MCP | 当前 Xcode 的 `mcpbridge` | 根目录 `.mcp.json`、`scripts/xcode_mcp.sh`；版本资料在 `xcode-ai/mcp/` | 启动时连接用户本机 Xcode，不复制二进制 |
+
+本仓库采用 `.codex-plugin/plugin.json` + `.mcp.json` 兼容布局，清单显式声明 `mcpServers`。不要让同步流程重新生成根目录 `plugin.json`：Codex CLI 0.163.0-alpha.10.2 会优先采用便携布局，导致 MCP 未注册。上游导出的插件清单仅作为来源资料保存在 `xcode-ai/upstream-plugin/`，不覆盖本仓库分发清单。
 
 `xcode-ai/source.json` 记录来源版本、skill 名称、prompt 数量和桥接程序哈希。`xcode-ai.lock.json` 记录同步文件的 SHA-256。`skills/` 完整镜像当前上游；例如上游没有的 `uikit-app-modernization` 会删除，采用上游导出的 `app-resizability`。非 skill 文件只删除上次明确托管、当前上游已删除、且未被本地修改的文件。
 
@@ -67,6 +69,17 @@ python3 scripts/sync_xcode_ai.py --xcode /Applications/Xcode.app --probe-mcp
 报告会比较 MCP 工具的增删及 schema 变化。原始 skill 也可能与服务存在版本差异：本次 Xcode 27.1 的设备 skill 使用 `DeviceEventSynthesize`，而实际 MCP 暴露 `DeviceInteractionSynthesize`。流程保留 Apple 原文并标注差异；运行任务前检查实际 schema，不凭名称相似直接替换参数。
 
 插件的桥接脚本优先采用 `XCODE_APP`，其次 `DEVELOPER_DIR`，然后是支持 `mcpbridge` 的 `xcode-select` 路径，最后尝试 `/Applications/Xcode.app`。多版本 Xcode 环境应显式指定路径；必要时用 `MCP_XCODE_PID` 选择正在运行的 Xcode。日志只写入 stderr，stdout 保留给 MCP。
+
+兼容配置显式设置 `cwd: "."`，由 Codex 解析为安装目录，再通过相对路径启动脚本；不依赖当前客户端不会展开的 `${PLUGIN_ROOT}` 参数。自定义 Xcode 路径及会话选择变量通过 `env_vars` 传递。
+
+验证分成三层：插件注册、MCP 初始化及工具发现、项目访问授权。Xcode 如返回 `This agent isn't approved to use Xcode's tools yet`，说明前两层已通过，但还需通过 `XcodeOpenWorkspace` 或 `XcodeNewProject` 触发项目授权。不要把这种状态报告为项目操作已经可用。
+
+本仓库的注册回归测试会调用实际 Codex 客户端。可在打开 Xcode 后执行 live 测试（不调用模型、不修改项目）；需要项目授权时会明确跳过业务调用验证：
+
+```bash
+python3 -m unittest discover -s tests -v
+APPLE_PLUGIN_TEST_LIVE_MCP=1 python3 -m unittest discover -s tests -p test_plugin_packaging.py -v
+```
 
 ## 给 Codex 的更新审阅提示词
 

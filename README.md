@@ -15,8 +15,9 @@ The knowledge resources can be reused across coding assistants; live Xcode tools
 ```
 apple/
 ├── README.md           # This documentation
-├── plugin.json         # Portable Agent Plugins manifest with Codex metadata
-├── mcp.json            # Local Xcode MCP connection
+├── .codex-plugin/
+│   └── plugin.json     # Codex compatibility manifest
+├── .mcp.json           # Local Xcode MCP connection
 ├── .agents/plugins/
 │   └── marketplace.json # Codex marketplace catalog
 ├── scripts/            # Xcode export/sync and MCP launcher
@@ -72,6 +73,19 @@ codex plugin add apple@apple-developer
 The marketplace is named `apple-developer`; the plugin is named `apple`. This package includes skills and a local Xcode MCP bridge. It requires macOS and a compatible Xcode installation. Open a project in Xcode and enable external agent access in Intelligence settings before using MCP tools. The bridge connects to the installed Xcode; it does not bundle Xcode or its tools. No external service login is required.
 
 Start a new chat after installation. In the desktop app, restart the app if the marketplace or skills do not appear. Try: "Use the modernize-tests skill to review which XCTest unit tests can migrate to Swift Testing."
+
+Version 0.1.1 uses the Codex compatibility layout (`.codex-plugin/plugin.json` and `.mcp.json`). Codex CLI 0.163.0-alpha.10.2 discovers the skills in a portable package but does not register its root `mcp.json`; adding a compatibility overlay while retaining root `plugin.json` does not resolve that issue.
+
+To update an existing Git-backed installation after the new release has been pushed:
+
+```bash
+codex plugin marketplace upgrade apple-developer &&
+codex plugin add apple@apple-developer
+```
+
+Start a new chat after updating. Check that the plugin detail lists `xcode-tools` as well as the skills; a successful install alone does not verify MCP registration.
+
+Xcode may require approval for each new external agent. If a tool reports that the agent is not approved yet, open your project using `XcodeOpenWorkspace` (or create one with `XcodeNewProject`) and complete the Xcode approval prompt. A successful MCP handshake and tool listing do not grant project access.
 
 To verify the installation:
 
