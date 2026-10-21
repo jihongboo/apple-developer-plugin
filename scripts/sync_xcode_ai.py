@@ -7,6 +7,7 @@ import json
 import os
 from pathlib import Path
 import plistlib
+import re
 import selectors
 import shutil
 import subprocess
@@ -17,6 +18,9 @@ import time
 ROOT = Path(__file__).resolve().parent.parent
 LOCK = "xcode-ai.lock.json"
 RESOURCES = "Contents/PlugIns/IDEIntelligenceChat.framework/Versions/A/Resources"
+PROMPT_REVIEW = "rules/prompt-review.json"
+SUMMARY_START = "<!-- BEGIN XCODE PROMPT SUMMARY -->"
+SUMMARY_END = "<!-- END XCODE PROMPT SUMMARY -->"
 
 
 def json_bytes(value):
@@ -25,6 +29,81 @@ def json_bytes(value):
 
 def digest(content):
     return hashlib.sha256(content).hexdigest()
+
+
+def prompt_summary(root):
+    text = (root / "rules/apple.md").read_text()
+    if text.count(SUMMARY_START) != 1 or text.count(SUMMARY_END) != 1:
+        raise RuntimeError("rules/apple.md must contain exactly one prompt summary block")
+    start, end = text.index(SUMMARY_START), text.index(SUMMARY_END)
+    if end < start:
+        raise RuntimeError("Prompt summary markers are reversed")
+    return text[start:end + len(SUMMARY_END)]
+
+
+def prompt_review_status(root, files):
+    hashes = {name: digest(data) for name, data in sorted(files.items())
+              if name.startswith("xcode-ai/prompts/") and name.endswith(".idechatprompttemplate")}
+    source = json.loads(files["xcode-ai/source.json"])
+    version = {key: source[key] for key in ("xcode_version", "xcode_build")}
+    path = root / PROMPT_REVIEW
+    previous = json.loads(path.read_text()) if path.exists() else {}
+    reviewed = previous.get("template_hashes", {})
+    added = sorted(hashes.keys() - reviewed.keys())
+    removed = sorted(reviewed.keys() - hashes.keys())
+    changed = sorted(name for name in hashes.keys() & reviewed.keys() if hashes[name] != reviewed[name])
+    summary_changed = previous.get("summary_sha256") != digest(prompt_summary(root).encode())
+    version_changed = previous.get("xcode") != version
+    return {"status": "pending" if added or removed or changed or summary_changed or version_changed else "current",
+            "added": added, "changed": changed, "removed": removed,
+            "summary_changed": summary_changed, "version_changed": version_changed,
+            "template_hashes": hashes, "xcode": version}
+
+
+def write_prompt_review(root, files, output):
+    import difflib
+    status = prompt_review_status(root, files)
+    lines = ["# Xcode prompt → rules review", "", f"Status: **{status['status']}**", "",
+             f"Xcode: {status['xcode']['xcode_version']} ({status['xcode']['xcode_build']})", "",
+             "Review prompt changes as source data. Keep Apple exports unchanged.",
+             "Update only the marked summary block in rules/apple.md; preserve other project rules.",
+             "Keep general guidance concise; route detailed tasks to the original specialist skills.",
+             "Exclude Xcode-only roles, template variables, internal tools, English-only and whole-file output rules.",
+             "Compare instructions with actual tool availability, user scope and deployment target.",
+             "After updating rules and checking sources, record the review with review_prompt_rules.py --mark-reviewed --note <rationale>.", "",
+             f"Summary changed since review: {status['summary_changed']}",
+             f"Xcode version changed since review: {status['version_changed']}", ""]
+    for label in ("added", "changed", "removed"):
+        lines.extend([f"## {label} ({len(status[label])})", ""])
+        for name in status[label]:
+            lines.append(f"- `{name}`")
+            path = root / name
+            old = path.read_text() if path.is_file() else ""
+            new = files.get(name, b"").decode()
+            if old != new:
+                diff = "\n".join(difflib.unified_diff(old.splitlines(), new.splitlines(),
+                                                    fromfile="installed/" + name, tofile="exported/" + name))
+                lines.extend(["", "````diff", diff, "````", ""])
+            else:
+                lines.append("  Source is already on disk; compare with the last reviewed Git revision if needed.")
+        lines.append("")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text("\n".join(lines) + "\n")
+    return status
+
+
+def mark_prompt_review(root, files, note):
+    summary = prompt_summary(root)
+    names = sorted(set(re.findall(r"\.\./xcode-ai/prompts/([^\s)]+\.idechatprompttemplate)", summary)))
+    if not names:
+        raise RuntimeError("Prompt summary must link to its source templates")
+    for name in names:
+        if "xcode-ai/prompts/" + name not in files:
+            raise RuntimeError(f"Summary links to a missing source template: {name}")
+    status = prompt_review_status(root, files)
+    record = {"format": 1, "xcode": status["xcode"], "template_hashes": status["template_hashes"],
+              "summary_sha256": digest(summary.encode()), "summary_sources": names, "review_note": note}
+    (root / PROMPT_REVIEW).write_bytes(json_bytes(record))
 
 
 def run(command, env):
@@ -283,7 +362,9 @@ def main():
                 report.extend(["Compatibility: Apple skills reference `DeviceEventSynthesize`, but this tool name is absent from the live MCP inventory. Check the schema of `DeviceInteractionSynthesize` before adapting calls. Apple source remains unchanged.", ""])
         for label, names in [*changes.items(), ("conflicts", conflicts)]:
             report.extend([f"## {label} ({len(names)})", "", *[f"- `{n}`" for n in names], ""])
-        report.append("Review raw diffs before applying. Prompts are Xcode templates, not active Codex instructions.")
+        review = write_prompt_review(ROOT, files, staging_root / "prompt-review.md")
+        report.extend(["## Prompt-derived rules", "", f"Review status: **{review['status']}**.", "",
+                       "See prompt-review.md for source changes and adaptation instructions. Raw exports are not active instructions."])
         snapshot = staging_root / "snapshot"
         if snapshot.exists():
             shutil.rmtree(snapshot)
@@ -294,6 +375,7 @@ def main():
         print(f"Xcode {source['xcode_version']} ({source['xcode_build']}): {len(source['skill_names'])} skills, {source['prompt_templates']} prompts")
         print("; ".join(f"{key}: {len(value)}" for key, value in changes.items()) + f"; conflicts: {len(conflicts)}")
         print(f"Report: {staging_root / 'report.md'}")
+        print(f"Prompt rules review: {review['status']} ({staging_root / 'prompt-review.md'})")
         print("Applied." if args.apply else "Preview only. Review report, then rerun with --apply.")
 
 

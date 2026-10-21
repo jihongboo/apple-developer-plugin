@@ -73,7 +73,7 @@ class PluginPackagingTests(unittest.TestCase):
             ["plugin", "marketplace", "add", str(ROOT), "--json"],
             ["plugin", "add", "apple@apple-developer", "--json"],
         ):
-            self.cli(*args)
+            self.installed = self.cli(*args)
 
     def cli(self, *args):
         result = subprocess.run(["codex", *args], env=self.env, cwd="/private/tmp",
@@ -100,7 +100,13 @@ class PluginPackagingTests(unittest.TestCase):
             "pluginName": "apple", "marketplacePath": str(ROOT / ".agents/plugins/marketplace.json"),
         })["plugin"]
         self.assertEqual(detail["mcpServers"], ["xcode-tools"])
-        self.assertEqual(len(detail["skills"]), len(list((ROOT / "skills").glob("*/SKILL.md"))))
+        manifest = json.loads((ROOT / ".codex-plugin/plugin.json").read_text())
+        expected = sum(len(list((ROOT / folder).glob("*/SKILL.md"))) for folder in manifest["skills"])
+        self.assertEqual(len(detail["skills"]), expected)
+        installed = Path(self.installed["installedPath"])
+        entry = installed / "plugin-skills/apple-development/SKILL.md"
+        self.assertTrue(entry.is_file())
+        self.assertTrue((entry.parent / "../../rules/apple.md").resolve().is_file())
 
     @unittest.skipUnless(os.environ.get("APPLE_PLUGIN_TEST_LIVE_MCP") == "1", "Enable explicitly with a running Xcode")
     def test_codex_discovers_live_tools_and_checks_authorization(self):

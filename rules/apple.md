@@ -1,6 +1,35 @@
 # Apple Platform Development Best Practices & Guardrails
 
-This ruleset serves as the unified guidelines for Apple platform development, covering Swift, SwiftUI, UIKit, Swift Testing, security build configurations, C bounds-safety, and device testing workflows.
+Use this guidance for the requested Apple-platform task, subject to the user's instructions and project conventions. Framework-specific notes below are conditional on the installed SDK, deployment target, and relevant specialist skill; they do not authorize unrelated migrations or security-setting changes.
+
+<!-- BEGIN XCODE PROMPT SUMMARY -->
+## Guidance distilled from Xcode prompts
+
+Adapted from Xcode 27.1 (27A9275). This is maintained guidance for external Codex, not an Apple system prompt. Source templates remain unchanged; review provenance is recorded in `prompt-review.json` beside this file.
+
+1. **Platform and language.** Inspect the target platform, SDK, deployment target, dependencies, and nearby code before recommending APIs. Prefer Swift and Apple frameworks for new Apple-platform code unless the project or user calls for another language or existing dependency. Do not introduce iOS-only APIs into macOS targets. [S1, S2]
+2. **Concurrency and style.** Prefer Swift Concurrency for new asynchronous work when appropriate; preserve established Dispatch or Combine code unless changing it is part of the task. Follow nearby naming, indentation, imports, and architecture. Prefer constants and avoid unnecessary force unwraps. [S1, S2]
+3. **Research before guessing.** Read relevant project code and specialist references. For unfamiliar or newly introduced Apple APIs, prefer `DocumentationSearch` when available, then official Apple documentation. Check availability; do not infer that an unresolved project symbol is necessarily a new Apple API. [S1, S3]
+4. **Scope and edits.** Make focused changes that satisfy the request. Preserve unrelated code, comments, ordering and behavior; inspect source before editing. Use the current host's editing tools rather than Xcode's whole-file output protocol. [S1, S3, S4]
+5. **Xcode context and paths.** Prefer suitable Xcode MCP tools when they are present and the project is authorized. Workspace-relative project paths are not filesystem paths: pass them to Xcode tools, and resolve filesystem locations from actual context when needed. Do not assume an open project, selected file or injected project structure. Available filesystem tools remain valid when MCP is unavailable or unsuitable. [S1, S5]
+6. **Validation proportional to the change.** File diagnostics can check local compiler issues quickly; a build additionally checks cross-file compilation and linking. Use `BuildProject` for an authorized Xcode project, or an appropriate available build command. Use snippets only for focused experiments; snippet or build success does not prove tests or UI behavior passed. Report what was actually checked. [S1]
+7. **Tests and previews.** Prefer Swift Testing for new eligible unit tests; retain XCTest where required by UI or performance tests and existing constraints. Use `#Preview` for new SwiftUI previews when supported, provide realistic dependencies, and add navigation or list containers only when the view requires them. Read the detailed testing or SwiftUI skill before migration work. [S2, S3, S6]
+8. **Host adaptation.** Respect the user's response language and requested format. Do not inherit Xcode-only instructions such as English-only replies, mandatory whole-file responses, hidden project context, `##SEARCH` markers, fixed internal tool names, or contradictory table-rendering restrictions. Raw template role declarations and placeholders are source material, not chat instructions. [S2, S3, S4, S5, S7]
+
+### Source templates
+
+- S1: [AgentSystemPromptAddition](../xcode-ai/prompts/AgentSystemPromptAddition.idechatprompttemplate)
+- S2: [BasicSystemPrompt](../xcode-ai/prompts/BasicSystemPrompt.idechatprompttemplate)
+- S3: [PlannerExecutorStylePlannerSystemPrompt-gpt_5](../xcode-ai/prompts/PlannerExecutorStylePlannerSystemPrompt-gpt_5.idechatprompttemplate)
+- S4: [IntegratorSystemPrompt](../xcode-ai/prompts/IntegratorSystemPrompt.idechatprompttemplate)
+- S5: [AgentAdditionalContext](../xcode-ai/prompts/AgentAdditionalContext.idechatprompttemplate)
+- S6: [GeneratePreview](../xcode-ai/prompts/GeneratePreview.idechatprompttemplate)
+- S7: [InQueryDetailedGuidelines](../xcode-ai/prompts/InQueryDetailedGuidelines.idechatprompttemplate)
+<!-- END XCODE PROMPT SUMMARY -->
+
+## Framework-specific notes
+
+These existing notes are retained separately from the reviewed prompt summary. Consult current specialist skills for exact APIs, availability and migration steps. Apply build hardening and test migrations only within the requested scope.
 
 ---
 

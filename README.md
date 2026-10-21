@@ -21,6 +21,7 @@ apple/
 ├── .agents/plugins/
 │   └── marketplace.json # Codex marketplace catalog
 ├── scripts/            # Xcode export/sync and MCP launcher
+├── plugin-skills/      # Maintained entry skill, separate from Apple exports
 ├── docs/               # Update workflow and reusable review prompt
 ├── xcode-ai/           # Original prompt templates and source metadata
 ├── xcode-ai.lock.json  # Managed export hashes and Xcode version
@@ -34,7 +35,9 @@ apple/
 ## Features & Components
 
 ### 1. Unified Rules (`rules/apple.md`)
-A consolidated, structured reference sheet containing strict coding boundaries and guidelines. This file is ideal to be used as a custom rule file (e.g., `.cursorrules` or `.github/copilot-instructions.md`) to guide AI-generated code.
+A maintained prompt-derived summary plus the existing framework notes. The `apple-development` entry skill reads this file on relevant Apple-platform tasks; the original 15 Apple skills remain unchanged. The marked summary block records source-template links, and `rules/prompt-review.json` tracks the reviewed Xcode version, template hashes, and adaptation rationale. The summary respects user scope, SDK availability and actual MCP authorization.
+
+The remaining framework notes are retained outside that summary block:
 - **SwiftUI Best Practices**: Optimizing view hierarchies, avoiding `@Entry` closure invalidation warnings, and standardizing data flow using the `@Observable` macro.
 - **SwiftUI 2027 Compile Defense**: Crucial fixes for `@State` Macro compilation issues introduced in Xcode 27/iOS 27.
 - **UIKit Modernization**: Guide to removing deprecated global interfaces like `UIScreen.main` or `interfaceOrientation` to support multi-window environments.
@@ -72,7 +75,7 @@ codex plugin add apple@apple-developer
 
 The marketplace is named `apple-developer`; the plugin is named `apple`. This package includes skills and a local Xcode MCP bridge. It requires macOS and a compatible Xcode installation. Open a project in Xcode and enable external agent access in Intelligence settings before using MCP tools. The bridge connects to the installed Xcode; it does not bundle Xcode or its tools. No external service login is required.
 
-Start a new chat after installation. In the desktop app, restart the app if the marketplace or skills do not appear. Try: "Use the modernize-tests skill to review which XCTest unit tests can migrate to Swift Testing."
+Start a new chat after installation. In the desktop app, restart the app if the marketplace or skills do not appear. Try: "Use the apple-development skill to review this Apple app using the plugin's rules", or select a specialist skill such as `modernize-tests`. The plugin has 15 upstream skills plus one maintained entry skill; normal automatic skill selection remains available.
 
 Version 0.1.1 uses the Codex compatibility layout (`.codex-plugin/plugin.json` and `.mcp.json`). Codex CLI 0.163.0-alpha.10.2 discovers the skills in a portable package but does not register its root `mcp.json`; adding a compatibility overlay while retaining root `plugin.json` does not resolve that issue.
 
@@ -100,7 +103,7 @@ codex plugin marketplace add . &&
 codex plugin add apple@apple-developer
 ```
 
-Codex installs a cached copy of the plugin. After local edits, refresh that installed copy before testing. The standalone `rules/apple.md` file is a reference for manual integration; plugin installation does not automatically apply it as global instructions.
+Codex installs a cached copy of the plugin. After local edits, refresh that installed copy before testing. `rules/apple.md` is read when the `apple-development` entry skill is selected; installing the plugin does not make these rules global instructions for every task. If you need project-wide guidance, explicitly integrate it into that project's `AGENTS.md`.
 
 See the [official Codex plugin packaging and marketplace documentation](https://developers.openai.com/plugins/build/plugins) for distribution details.
 
@@ -127,7 +130,13 @@ Apple-exported skills are preserved unchanged, including their descriptions. Aft
 python3 scripts/sync_xcode_ai.py --xcode /Applications/Xcode.app
 ```
 
-See [the update workflow](docs/update-xcode-ai.md) for applying skills and raw prompt templates, tracking versions and local conflicts, verifying MCP tools, and a reusable Codex prompt that runs the workflow.
+The sync also creates `.xcode-ai/prompt-review.md`. When templates change, Codex reviews their meaning and updates the marked summary in `rules/apple.md`; the script never pretends to generate a semantic summary itself. Check review freshness with:
+
+```bash
+python3 scripts/review_prompt_rules.py --check
+```
+
+See [the update workflow](docs/update-xcode-ai.md) for the complete prompt → rules review and a reusable Codex prompt that runs it.
 
 ## License
 

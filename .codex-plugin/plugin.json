@@ -1,6 +1,6 @@
 {
   "name": "apple",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Skills and reference guides for Swift, SwiftUI, UIKit, Swift Testing, and Xcode security settings on Apple platforms.",
   "author": {
     "name": "Hongbo Ji",
@@ -9,7 +9,7 @@
   "homepage": "https://github.com/jihongboo/apple-developer-plugin",
   "repository": "https://github.com/jihongboo/apple-developer-plugin",
   "keywords": ["apple", "ios", "macos", "swift", "swiftui", "uikit", "xcode"],
-  "skills": "./skills/",
+  "skills": ["./skills/", "./plugin-skills/"],
   "mcpServers": "./.mcp.json",
   "requires_local_executor": true,
   "interface": {
