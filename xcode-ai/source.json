@@ -1,0 +1,27 @@
+{
+  "mcp_bridge_sha256": "6cca03fdcaee6c111b35ee95a4dbb6d5361bc1e65d2e8859a82e890e3f2a7472",
+  "mcp_runtime_verified": true,
+  "mcp_tool_count": 54,
+  "prompt_resources": "Contents/PlugIns/IDEIntelligenceChat.framework/Versions/A/Resources",
+  "prompt_templates": 55,
+  "skill_names": [
+    "accessibility-dynamic-type-specialist",
+    "accessibility-sufficient-contrast-specialist",
+    "accessibility-voiceover-specialist",
+    "adopt-c-bounds-safety",
+    "app-intents-specialist",
+    "app-intents-whats-new-27",
+    "app-resizability",
+    "audit-xcode-security-settings",
+    "building-document-based-swiftui-applications",
+    "device-interaction",
+    "modernize-tests",
+    "swiftui-specialist",
+    "swiftui-whats-new-27",
+    "translation",
+    "translation-coordinator"
+  ],
+  "skills_export": "xcrun agent plugin path --plugin-format codex",
+  "xcode_build": "27A9275",
+  "xcode_version": "27.1"
+}

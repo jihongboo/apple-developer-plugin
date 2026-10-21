@@ -1,1 +1,3 @@
 .DS_Store
+.xcode-ai/
+__pycache__/

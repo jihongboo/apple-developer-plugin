@@ -12,6 +12,7 @@
   "keywords": ["apple", "ios", "macos", "swift", "swiftui", "uikit", "xcode"],
   "extensions": {
     "com.openai": {
+      "requires_local_executor": true,
       "interface": {
         "displayName": "Apple Developer",
         "shortDescription": "Swift, SwiftUI, UIKit, and Xcode development guidance",

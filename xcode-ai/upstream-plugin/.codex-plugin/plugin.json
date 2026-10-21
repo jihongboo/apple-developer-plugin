@@ -1,0 +1,6 @@
+{
+  "description" : "Xcode-managed plugin for skills and services that integrate with the IDE.",
+  "name" : "xcode-integration",
+  "skills" : ".\/skills\/",
+  "version" : "1.0.0"
+}
